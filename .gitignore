@@ -1,0 +1,45 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local application state and private uploads
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+uploads/*
+!uploads/.gitkeep
+instance/
+
+# Coverage, logs, caches, and build output
+.coverage
+coverage.xml
+htmlcov/
+*.log
+logs/
+.cache/
+tmp/
+temp/
+build/
+dist/
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

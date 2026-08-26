@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A private, source-grounded resume knowledge assessment with personalized MCQs and analytics." />
+    <title>Resume Quiz | Interview Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body data-theme="dark">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
+    <div class="page-shell resume-quiz-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Resume Defense Lab</p>
+          <h1>Resume Quiz</h1>
+          <p class="subtle">Test whether you can explain the technologies, projects, and experience you claim.</p>
+        </div>
+        <nav class="topbar-actions" aria-label="Primary navigation">
+          <a class="ghost-button" href="{{ url_for('main.index') }}">Main Interview</a>
+          <a class="ghost-button" href="{{ url_for('main.learning_page') }}">Interview Learning</a>
+          <a class="ghost-button" href="{{ url_for('main.aptitude_page') }}">Aptitude Quiz</a>
+          <a class="ghost-button" href="{{ url_for('main.dashboard_page') }}">Analytics</a>
+          <button id="themeToggle" class="ghost-button icon-button" type="button" aria-label="Switch to light theme" title="Switch to light theme">
+            <svg class="nav-symbol theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path></svg>
+            <svg class="nav-symbol theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"></path></svg>
+          </button>
+          <button id="logoutButton" class="ghost-button icon-button hidden" type="button" aria-label="Log out" title="Log out">
+            <svg class="nav-symbol logout-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10M14 8l4 4-4 4M8 12h10"></path></svg>
+          </button>
+        </nav>
+      </header>
+
+      <main class="layout">
+        <section id="authNotice" class="panel auth-guard hidden">
+          <p class="eyebrow">Authentication Needed</p>
+          <h2>Log in before uploading a personal resume.</h2>
+          <p class="subtle">Resume analysis, quiz answers, and history are private to your account.</p>
+          <a class="primary-button" href="{{ url_for('main.index') }}">Go To Login</a>
+        </section>
+
+        <section id="resumeQuizContent" class="resume-quiz-page hidden">
+          <section id="landingSection" class="resume-landing-grid">
+            <article class="panel resume-quiz-hero">
+              <div>
+                <span class="resume-kicker">Source-grounded assessment</span>
+                <p class="eyebrow">Resume-Based Quiz</p>
+                <h2>Know every claim before an interviewer tests it.</h2>
+                <p>Test how well you understand the technologies, projects, skills, and professional experience listed on your own resume.</p>
+                <div class="resume-flow" aria-label="Resume Quiz flow">
+                  <span>Upload Resume</span><i>→</i><span>Resume Analysis</span><i>→</i><span>10 MCQs</span><i>→</i><span>Analytics</span>
+                </div>
+              </div>
+              <div class="resume-hero-rule">
+                <strong>10</strong><span>questions</span><strong>10:00</strong><span>total time</span>
+              </div>
+            </article>
+
+            <section class="panel resume-upload-panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">Upload Your Resume</p><h2>PDF or DOCX</h2></div>
+                <span class="status-chip">Private</span>
+              </div>
+              <form id="resumeUploadForm">
+                <label id="resumeDropZone" class="resume-drop-zone" for="resumeFileInput">
+                  <input id="resumeFileInput" name="resume" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
+                  <span class="upload-mark">DOC</span>
+                  <strong>Drop your resume here</strong>
+                  <small>or browse a PDF/DOCX file, up to 8 MB</small>
+                </label>
+                <div id="selectedFileCard" class="selected-file-card hidden">
+                  <div><strong id="selectedFileName">resume.pdf</strong><span id="selectedFileMeta">PDF · 0 KB</span></div>
+                  <button id="clearSelectedFileButton" class="ghost-button" type="button">Remove</button>
+                </div>
+                <button id="uploadResumeButton" class="primary-button full-button" type="submit" disabled>Upload &amp; Analyze Resume</button>
+              </form>
+              <p class="privacy-copy">Your resume is analyzed only to generate personalized preparation questions and remains private to your signed-in account.</p>
+            </section>
+          </section>
+
+          <section id="analysisLoading" class="panel resume-analysis-loading hidden" aria-live="polite">
+            <div class="resume-scan-visual"><span></span></div>
+            <div><p class="eyebrow">Analyzing Resume</p><h2 id="analysisLoadingText">Extracting technical skills...</h2><p class="subtle">We are separating professional claims from contact and personal information.</p></div>
+          </section>
+
+          <section id="analysisSection" class="resume-analysis-section hidden">
+            <section class="panel resume-file-summary">
+              <div>
+                <p class="eyebrow">Resume</p>
+                <h2 id="uploadedResumeName">Resume.pdf</h2>
+                <p><span class="success-dot"></span><span id="uploadedResumeStatus">Analysis Complete</span> · <span id="uploadedResumeMeta"></span></p>
+              </div>
+              <div class="answer-actions">
+                <button id="replaceResumeButton" class="secondary-button" type="button">Replace Resume</button>
+                <button id="removeResumeButton" class="ghost-button" type="button">Remove Resume</button>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Resume Analysis</p><h2>Detected professional evidence</h2></div><span class="status-chip">Review before quiz</span></div>
+              <div class="resume-count-grid">
+                <article><span>Technical Skills</span><strong id="skillCount">0</strong><small>detected</small></article>
+                <article><span>Professional Experience</span><strong id="experienceCount">0</strong><small>entries</small></article>
+                <article><span>Projects</span><strong id="projectCount">0</strong><small>entries</small></article>
+                <article><span>Certifications</span><strong id="certificationCount">0</strong><small>entries</small></article>
+              </div>
+            </section>
+
+            <div class="resume-analysis-grid">
+              <section class="panel resume-analysis-card resume-skills-card">
+                <p class="eyebrow">Technical Skills</p><h3>Claimed technologies</h3>
+                <div id="technicalSkillList" class="chip-row resume-chip-list"></div>
+              </section>
+              <section class="panel resume-analysis-card">
+                <p class="eyebrow">Professional Experience</p><h3>Technical experience evidence</h3>
+                <div id="experienceList" class="resume-evidence-list"></div>
+              </section>
+              <section class="panel resume-analysis-card">
+                <p class="eyebrow">Projects</p><h3>Project knowledge sources</h3>
+                <div id="projectList" class="resume-evidence-list"></div>
+              </section>
+              <section class="panel resume-analysis-card">
+                <p class="eyebrow">Additional Evidence</p><h3>Education, certifications, and tools</h3>
+                <div id="additionalAnalysis" class="resume-evidence-list"></div>
+              </section>
+            </div>
+
+            <section class="panel resume-generate-panel">
+              <div><p class="eyebrow">Quiz Information</p><h2>10 questions · 10 minutes · 4 options each</h2><p class="subtle">Questions test concepts behind your detected claims. Answers and explanations remain hidden until submission.</p></div>
+              <button id="generateQuizButton" class="primary-button" type="button">Generate Resume Quiz</button>
+            </section>
+          </section>
+
+          <section id="quizReadySection" class="panel resume-ready-panel hidden">
+            <div><p class="eyebrow">Quiz Ready</p><h2>Your personalized assessment is prepared.</h2><p id="quizDistributionText" class="subtle"></p></div>
+            <button id="startResumeQuizButton" class="primary-button" type="button">Start Resume Quiz</button>
+          </section>
+
+          <section id="quizSection" class="resume-quiz-workspace hidden">
+            <div class="session-exit-bar" aria-label="Active Resume Quiz controls">
+              <button id="resumeQuizBackButton" class="session-back-button" type="button" aria-label="Go back to Resume Quiz setup">
+                <span aria-hidden="true">&larr;</span> Back
+              </button>
+              <button id="resumeQuizQuitButton" class="session-quit-button" type="button" aria-label="Quit Resume Quiz and return to dashboard">
+                Quit
+              </button>
+            </div>
+            <section class="panel resume-question-card">
+              <header class="resume-quiz-toolbar">
+                <div><p class="eyebrow">Resume Quiz</p><div class="chip-row"><span id="quizCategoryChip" class="chip">Technical Skills</span><span id="quizTopicChip" class="chip">Python</span><span id="quizDifficultyChip" class="chip">Medium</span></div></div>
+                <div id="resumeQuizClock" class="quiz-clock"><span>Total Time Remaining</span><strong id="resumeQuizTimer">10:00</strong></div>
+              </header>
+              <div id="timerWarning" class="pressure-banner hidden" role="status"></div>
+              <div class="quiz-progress-header"><strong id="resumeQuestionCounter">Question 1 of 10</strong><span id="resumeAnsweredCounter">0 answered</span></div>
+              <div class="quiz-progress-track"><span id="resumeProgressFill" class="quiz-progress-fill"></span></div>
+              <div class="question-stage resume-question-stage">
+                <h2 id="resumeQuestionText">Question text</h2>
+                <div id="resumeOptionList" class="option-list" role="radiogroup" aria-label="Resume Quiz answer choices"></div>
+              </div>
+              <div class="quiz-navigation">
+                <button id="resumePreviousButton" class="ghost-button" type="button">Previous</button>
+                <button id="resumeNextButton" class="secondary-button" type="button">Next Question</button>
+                <button id="resumeSubmitButton" class="primary-button hidden" type="button">Submit Quiz</button>
+              </div>
+            </section>
+            <aside class="panel question-map-panel">
+              <p class="eyebrow">Question Map</p><h3>Attempt Progress</h3>
+              <div id="resumeQuestionMap" class="question-map"></div>
+              <div class="map-legend"><span><i class="answered"></i>Answered</span><span><i class="current"></i>Current</span><span><i></i>Unanswered</span></div>
+            </aside>
+          </section>
+
+          <section id="evaluatingSection" class="panel resume-analysis-loading hidden" aria-live="assertive">
+            <span class="processing-spinner"></span><div><p class="eyebrow">Evaluating Resume Quiz</p><h2 id="evaluationMessage">Calculating source-linked analytics...</h2></div>
+          </section>
+
+          <section id="resultsSection" class="resume-results hidden">
+            <section class="panel resume-result-hero">
+              <div><p class="eyebrow">Resume Quiz Complete</p><h2 id="resultHeadline">You scored 0 / 10</h2><p id="resultTime"></p></div>
+              <div id="readinessRing" class="readiness-ring"><strong id="readinessScore">0</strong><span id="readinessLabel">Needs More Review</span></div>
+            </section>
+            <section class="metric-grid resume-result-metrics">
+              <article class="metric-card accent"><span>Overall Score</span><strong id="resultPercentage">0%</strong></article>
+              <article class="metric-card"><span>Correct Answers</span><strong id="resultCorrect">0 / 10</strong></article>
+              <article class="metric-card"><span>Questions Attempted</span><strong id="resultAttempted">0 / 10</strong></article>
+              <article class="metric-card"><span>Average Time</span><strong id="resultAverageTime">0 sec</strong></article>
+            </section>
+            <section class="panel"><p class="eyebrow">Category Analytics</p><h2>Resume section performance</h2><div id="categoryPerformance" class="accuracy-list resume-accuracy-list"></div></section>
+            <div class="resume-analytics-grid">
+              <section class="panel"><p class="eyebrow">Technical Skills Performance</p><div id="skillPerformance" class="accuracy-list"></div></section>
+              <section class="panel"><p class="eyebrow">Project Knowledge</p><div id="projectPerformance" class="accuracy-list"></div></section>
+              <section class="panel"><p class="eyebrow">Professional Experience Knowledge</p><div id="experiencePerformance" class="accuracy-list"></div></section>
+            </div>
+            <div class="report-grid resume-insight-grid">
+              <section class="panel"><p class="eyebrow">Strong Resume Areas</p><div id="strongAreaList" class="chip-row resume-chip-list"></div></section>
+              <section class="panel"><p class="eyebrow">Resume Areas to Improve</p><div id="weakAreaList" class="chip-row resume-chip-list"></div></section>
+              <section class="panel"><p class="eyebrow">Recommended Practice</p><div id="resumePracticeLinks" class="practice-links"></div></section>
+            </div>
+            <section class="panel"><p class="eyebrow">Resume Topics to Review Before Interviews</p><h2>Risk areas tied to your claims</h2><div id="riskAreaList" class="resume-risk-list"></div></section>
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Detailed Review</p><h2>Answers, explanations, and resume connections</h2></div><div class="answer-actions"><button id="retakeQuizButton" class="secondary-button" type="button">Retake Resume Quiz</button><button id="uploadDifferentButton" class="ghost-button" type="button">Upload Different Resume</button></div></div>
+              <div id="resumeReviewList" class="review-list"></div>
+            </section>
+          </section>
+
+          <section id="historySection" class="resume-history-grid">
+            <section class="panel"><div class="panel-heading"><div><p class="eyebrow">Previous Resume Quizzes</p><h2>Attempt history</h2></div><span id="resumeAttemptCount" class="status-chip">0 attempts</span></div><div id="resumeHistoryList" class="history-stack"></div></section>
+            <section class="panel"><p class="eyebrow">Resume Quiz Progress</p><h2>Knowledge trend</h2><canvas id="resumeTrendChart" class="chart-canvas" aria-label="Resume Quiz score trend"></canvas></section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="submitDialog" class="resume-submit-dialog">
+      <form method="dialog" class="panel">
+        <p class="eyebrow">Submit Resume Quiz?</p><h2 id="submitDialogTitle">Review your answers</h2><p id="submitDialogText">You have unanswered questions.</p>
+        <div class="answer-actions"><button id="continueQuizButton" class="secondary-button" value="cancel">Continue Quiz</button><button id="submitAnywayButton" class="primary-button" value="confirm">Submit Anyway</button></div>
+      </form>
+    </dialog>
+    <div id="timeoutOverlay" class="countdown-overlay hidden" role="alertdialog" aria-modal="true"><div><p>Time Limit Reached</p><strong>TIMEOUT</strong><span>Your submitted answers will now be evaluated.</span></div></div>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script type="module" src="{{ url_for('static', filename='js/resume_quiz.js') }}"></script>
+  </body>
+</html>

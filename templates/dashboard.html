@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interview Analytics Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body data-theme="dark">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Interview Analytics</p>
+          <h1>Dashboard</h1>
+          <p class="subtle">
+            Review your latest result, identify patterns, and inspect detailed interview history.
+          </p>
+        </div>
+        <div class="topbar-actions">
+          <a class="ghost-button" href="{{ url_for('main.index') }}">Back To Main</a>
+          <a class="ghost-button" href="{{ url_for('main.learning_page') }}">Interview Learning</a>
+          <a class="ghost-button" href="{{ url_for('main.aptitude_page') }}">Aptitude Quiz</a>
+          <a class="ghost-button" href="{{ url_for('main.resume_quiz_page') }}">Resume Quiz</a>
+          <button id="themeToggle" class="ghost-button icon-button" type="button" aria-label="Switch to light theme" title="Switch to light theme">
+            <svg class="nav-symbol theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path></svg>
+            <svg class="nav-symbol theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"></path></svg>
+          </button>
+          <button id="logoutButton" class="ghost-button icon-button hidden" type="button" aria-label="Log out" title="Log out">
+            <svg class="nav-symbol logout-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10M14 8l4 4-4 4M8 12h10"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section id="authNotice" class="panel auth-guard hidden">
+          <p class="eyebrow">Authentication Needed</p>
+          <h2>Log in on the main page to view your analytics dashboard.</h2>
+          <p class="subtle">
+            Your interview analytics are private to your signed-in session.
+          </p>
+          <div class="topbar-actions">
+            <a class="primary-button" href="{{ url_for('main.index') }}">Go To Main Page</a>
+          </div>
+        </section>
+
+        <section id="dashboardContent" class="dashboard-page hidden">
+          <section class="panel dashboard-hero">
+            <div>
+              <p class="eyebrow">Candidate Analytics</p>
+              <h2 id="dashboardUserName">Interview Candidate</h2>
+              <p id="dashboardUserEmail" class="subtle">Signed-in analytics profile</p>
+            </div>
+            <div class="summary-chip-row">
+              <article class="summary-chip">
+                <span>Total Interviews</span>
+                <strong id="totalInterviewsValue">0</strong>
+              </article>
+              <article class="summary-chip">
+                <span>Average Score</span>
+                <strong id="averageScoreValue">0</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-analytics-grid">
+            <section class="panel summary-panel">
+              <p class="eyebrow">📊 Interview Summary</p>
+              <h3>Latest Interview Snapshot</h3>
+              <div class="summary-detail-grid">
+                <article class="summary-detail-card">
+                  <span>Date</span>
+                  <strong id="summaryDateValue">No interviews yet</strong>
+                </article>
+                <article class="summary-detail-card">
+                  <span>Score</span>
+                  <strong id="summaryScoreValue">0</strong>
+                </article>
+              </div>
+            </section>
+
+            <section class="panel insight-panel dashboard-section">
+              <p class="eyebrow">💪 Strengths</p>
+              <h3>What Went Well</h3>
+              <ul id="strengthList" class="insight-list"></ul>
+            </section>
+
+            <section class="panel insight-panel dashboard-section">
+              <p class="eyebrow">⚠️ Weaknesses</p>
+              <h3>Watch Areas</h3>
+              <ul id="weaknessList" class="insight-list"></ul>
+            </section>
+
+            <section class="panel insight-panel dashboard-section">
+              <p class="eyebrow">🚀 Improvements</p>
+              <h3>Next Practice Focus</h3>
+              <ul id="suggestionList" class="insight-list"></ul>
+            </section>
+
+            <section class="panel history-section">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">📜 Interview History</p>
+                  <h3>All Past Interviews</h3>
+                </div>
+              </div>
+              <div id="historyList" class="history-stack"></div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script type="module" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  </body>
+</html>

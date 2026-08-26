@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aptitude Quiz | Interview Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body data-theme="dark">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
+    <div class="page-shell aptitude-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Pre-Interview Assessment Lab</p>
+          <h1>Aptitude Quiz</h1>
+          <p class="subtle">Ten questions. Six companies. One focused test of reasoning under time pressure.</p>
+        </div>
+        <div class="topbar-actions">
+          <a class="ghost-button" href="{{ url_for('main.index') }}">Main Interview</a>
+          <a class="ghost-button" href="{{ url_for('main.learning_page') }}">Interview Learning</a>
+          <a class="ghost-button" href="{{ url_for('main.resume_quiz_page') }}">Resume Quiz</a>
+          <a class="ghost-button" href="{{ url_for('main.dashboard_page') }}">Analytics</a>
+          <button id="themeToggle" class="ghost-button icon-button" type="button" aria-label="Switch to light theme" title="Switch to light theme">
+            <svg class="nav-symbol theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path></svg>
+            <svg class="nav-symbol theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"></path></svg>
+          </button>
+          <button id="logoutButton" class="ghost-button icon-button hidden" type="button" aria-label="Log out" title="Log out">
+            <svg class="nav-symbol logout-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10M14 8l4 4-4 4M8 12h10"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section id="authNotice" class="panel auth-guard hidden">
+          <p class="eyebrow">Authentication Needed</p>
+          <h2>Log in before starting an aptitude quiz.</h2>
+          <p class="subtle">Your attempts and company-wise accuracy are saved to your account.</p>
+          <div class="topbar-actions aptitude-auth-action">
+            <a class="primary-button" href="{{ url_for('main.index') }}">Go To Login</a>
+          </div>
+        </section>
+
+        <section id="aptitudeContent" class="aptitude-page hidden">
+          <section id="quizIntro" class="aptitude-hero panel">
+            <div class="aptitude-hero-copy">
+              <span class="aptitude-kicker">300-question rotation bank</span>
+              <p class="eyebrow">Campus Recruitment Simulation</p>
+              <h2>Think clearly when the clock gets loud.</h2>
+              <p>
+                Every attempt draws a fresh mix from NVIDIA, Apple, Google, Microsoft,
+                Amazon, and Walmart aptitude patterns. Questions and answer positions are randomized.
+              </p>
+              <div class="quiz-rule-row">
+                <span>10 questions</span>
+                <span>12 minutes</span>
+                <span>4 Easy / 4 Medium / 2 Hard</span>
+              </div>
+              <button id="startQuizButton" class="primary-button aptitude-start-button" type="button">
+                Start New Quiz
+              </button>
+            </div>
+            <div class="aptitude-orbit" aria-hidden="true">
+              <div class="orbit-score">10</div>
+              <span>questions per attempt</span>
+            </div>
+          </section>
+
+          <section id="quizSection" class="quiz-workspace hidden">
+            <div class="session-exit-bar" aria-label="Active aptitude quiz controls">
+              <button id="aptitudeBackButton" class="session-back-button" type="button" aria-label="Go back to Aptitude Quiz setup">
+                <span aria-hidden="true">&larr;</span> Back
+              </button>
+              <button id="aptitudeQuitButton" class="session-quit-button" type="button" aria-label="Quit Aptitude Quiz and return to dashboard">
+                Quit
+              </button>
+            </div>
+            <section class="panel quiz-card">
+              <div class="quiz-toolbar">
+                <div>
+                  <p id="companyLabel" class="eyebrow company-label">Company: NVIDIA</p>
+                  <div class="quiz-meta-row">
+                    <span id="categoryChip" class="chip">Logical Reasoning</span>
+                    <span id="difficultyChip" class="chip">Easy</span>
+                  </div>
+                </div>
+                <div class="quiz-clock">
+                  <span>Time Remaining</span>
+                  <strong id="quizTimer">12:00</strong>
+                </div>
+              </div>
+
+              <div class="quiz-progress-header">
+                <strong id="questionCounter">Question 1 of 10</strong>
+                <span id="answeredCounter">0 answered</span>
+              </div>
+              <div class="quiz-progress-track" aria-hidden="true">
+                <span id="quizProgressFill" class="quiz-progress-fill"></span>
+              </div>
+
+              <div class="question-stage">
+                <h2 id="questionText">Question text</h2>
+                <div id="optionList" class="option-list" role="radiogroup" aria-label="Answer choices"></div>
+              </div>
+
+              <div class="quiz-navigation">
+                <button id="previousButton" class="ghost-button" type="button">Previous</button>
+                <button id="nextButton" class="secondary-button" type="button">Next</button>
+                <button id="submitQuizButton" class="primary-button hidden" type="button">Submit Quiz</button>
+              </div>
+            </section>
+
+            <aside class="panel question-map-panel">
+              <p class="eyebrow">Question Map</p>
+              <h3>Attempt Progress</h3>
+              <div id="questionMap" class="question-map"></div>
+              <p class="subtle question-map-note">Filled numbers are answered. You can jump to any question.</p>
+            </aside>
+          </section>
+
+          <section id="resultsSection" class="results-stack hidden">
+            <section class="panel result-hero">
+              <div>
+                <p class="eyebrow">Quiz Complete</p>
+                <h2 id="resultHeadline">You scored 0 / 10</h2>
+                <p id="resultStatus" class="result-status">Keep practicing.</p>
+              </div>
+              <div id="resultScoreRing" class="result-score-ring"><strong id="resultPercentage">0%</strong></div>
+            </section>
+
+            <section class="metric-grid aptitude-result-metrics">
+              <article class="metric-card"><span>Total Questions</span><strong id="totalQuestionsValue">10</strong></article>
+              <article class="metric-card"><span>Correct Answers</span><strong id="correctAnswersValue">0</strong></article>
+              <article class="metric-card"><span>Wrong Answers</span><strong id="wrongAnswersValue">0</strong></article>
+              <article class="metric-card accent"><span>Result</span><strong id="passFailValue">Fail</strong></article>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Company Report</p><h3>Company-Wise Performance</h3></div></div>
+              <div id="companyResultGrid" class="company-performance-grid"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">Detailed Review</p><h3>Answers And Explanations</h3></div>
+                <button id="newQuizButton" class="secondary-button" type="button">Take Another Quiz</button>
+              </div>
+              <div id="reviewList" class="review-list"></div>
+            </section>
+          </section>
+
+          <section id="statisticsSection" class="aptitude-statistics">
+            <section class="panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">Performance Memory</p><h3>Your Aptitude Statistics</h3></div>
+                <span id="bankCountLabel" class="chip">300 questions ready</span>
+              </div>
+              <div class="metric-grid aptitude-stat-grid">
+                <article class="metric-card"><span>Attempts</span><strong id="attemptsValue">0</strong></article>
+                <article class="metric-card"><span>Highest Score</span><strong id="highestScoreValue">0 / 10</strong></article>
+                <article class="metric-card"><span>Average Score</span><strong id="averageScoreValue">0 / 10</strong></article>
+                <article class="metric-card accent"><span>Accuracy</span><strong id="accuracyValue">0%</strong></article>
+              </div>
+            </section>
+
+            <section class="aptitude-insight-grid">
+              <section class="panel">
+                <p class="eyebrow">Company Accuracy</p>
+                <h3>Across All Attempts</h3>
+                <div id="companyAccuracyList" class="accuracy-list"></div>
+              </section>
+              <section class="panel">
+                <p class="eyebrow">Skill Signals</p>
+                <h3>Strong And Weak Categories</h3>
+                <div class="category-signal-grid">
+                  <div><span class="detail-label">Strong</span><div id="strongCategoryList" class="chip-row"></div></div>
+                  <div><span class="detail-label">Needs Practice</span><div id="weakCategoryList" class="chip-row"></div></div>
+                </div>
+              </section>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Attempt History</p><h3>Past Aptitude Quizzes</h3></div></div>
+              <div id="aptitudeHistoryList" class="history-stack"></div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script type="module" src="{{ url_for('static', filename='js/aptitude.js') }}"></script>
+  </body>
+</html>

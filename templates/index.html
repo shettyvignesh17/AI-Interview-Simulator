@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A voice-first, adaptive AI interview simulator with privacy-aware session monitoring." />
+    <title>AI Interview Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body data-theme="dark">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Voice-first interview practice</p>
+          <h1>AI Interview Simulator</h1>
+          <p class="subtle">Adaptive company-style interviews with observable, privacy-aware session coaching.</p>
+        </div>
+        <nav class="topbar-actions" aria-label="Primary navigation">
+          <a id="learningLink" class="ghost-button hidden" href="{{ url_for('main.learning_page') }}">Interview Learning</a>
+          <a id="aptitudeLink" class="ghost-button hidden" href="{{ url_for('main.aptitude_page') }}">Aptitude Quiz</a>
+          <a id="resumeQuizLink" class="ghost-button hidden" href="{{ url_for('main.resume_quiz_page') }}">Resume Quiz</a>
+          <a id="analyticsLink" class="ghost-button hidden" href="{{ url_for('main.dashboard_page') }}">Analytics</a>
+          <button id="themeToggle" class="ghost-button icon-button" type="button" aria-label="Switch to light theme" title="Switch to light theme">
+            <svg class="nav-symbol theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path></svg>
+            <svg class="nav-symbol theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"></path></svg>
+          </button>
+          <button id="logoutButton" class="ghost-button icon-button hidden" type="button" aria-label="Log out" title="Log out">
+            <svg class="nav-symbol logout-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10M14 8l4 4-4 4M8 12h10"></path></svg>
+          </button>
+        </nav>
+      </header>
+
+      <main class="layout">
+        <section id="authView" class="auth-shell">
+          <section class="panel auth-copy">
+            <p class="eyebrow">Practice the room, not just the answer</p>
+            <h2>Build calm, structured answers under realistic interview pressure.</h2>
+            <div class="feature-list">
+              <article>
+                <strong>Adaptive delivery</strong>
+                <p>Questions respond to your round, domain, difficulty, company, and prior answer quality.</p>
+              </article>
+              <article>
+                <strong>Voice-first environment</strong>
+                <p>Hear each question, then type or speak a structured response and review detailed feedback afterward.</p>
+              </article>
+              <article>
+                <strong>Neutral integrity signals</strong>
+                <p>Focus and camera events are described as possible session signals, never accusations.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel auth-panel">
+            <div class="auth-tabs" role="tablist" aria-label="Authentication">
+              <button class="tab-button active" type="button" data-auth-tab="login">Login</button>
+              <button class="tab-button" type="button" data-auth-tab="signup">Sign Up</button>
+            </div>
+            <form id="loginForm" class="auth-form">
+              <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+              <label>Password<input name="password" type="password" autocomplete="current-password" minlength="6" required /></label>
+              <button class="primary-button" type="submit">Enter Simulator</button>
+            </form>
+            <form id="signupForm" class="auth-form hidden">
+              <label>Name<input name="name" type="text" autocomplete="name" minlength="2" required /></label>
+              <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+              <label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required /></label>
+              <button class="primary-button" type="submit">Create Account</button>
+            </form>
+            <p class="auth-note">Your interview history and reports remain private to your signed-in account.</p>
+          </section>
+        </section>
+
+        <section id="appView" class="simulator-app hidden">
+          <section id="preInterviewView" class="pre-interview-view">
+            <div class="preflight-grid">
+              <section class="panel setup-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">Configure Interview</p>
+                    <h2>Choose your target room</h2>
+                  </div>
+                  <span id="bankSizeChip" class="status-chip">1,000 question bank</span>
+                </div>
+                <form id="interviewSetupForm" class="setup-form">
+                  <label>Company
+                    <select id="companySelect" name="company" required aria-label="Target company"></select>
+                  </label>
+                  <label>Interview Round
+                    <select id="roundSelect" name="roundType" required aria-label="Interview round"></select>
+                  </label>
+                  <label>Domain
+                    <select id="domainSelect" name="domain" required aria-label="Interview domain"></select>
+                  </label>
+                  <label>Difficulty
+                    <select id="difficultySelect" name="difficulty" required aria-label="Starting difficulty"></select>
+                  </label>
+                  <label class="advanced-voice-option" for="advancedVoiceMode">
+                    <input id="advancedVoiceMode" name="advancedVoiceMode" type="checkbox" />
+                    <span class="voice-feature-symbol" aria-hidden="true">LIVE</span>
+                    <span>
+                      <strong>Hands-Free Voice Interview</strong>
+                      <small id="voiceSupportDescription">The interviewer speaks, opens the microphone automatically, detects when you finish, and continues naturally.</small>
+                    </span>
+                    <em id="adaptiveEngineStatus">Adaptive follow-ups ready</em>
+                  </label>
+                  <label class="privacy-consent">
+                    <input id="privacyConsent" type="checkbox" required />
+                    <span>I understand and want to continue with camera, microphone, and browser-focus session signals.</span>
+                  </label>
+                  <p class="privacy-copy">
+                    Camera and microphone are used only for the live interview experience and observable device signals. No identity, sensitive attribute, emotion, honesty, or personality inference is performed.
+                    If an OpenAI provider is configured, answer text and recent interview context are sent securely to generate a follow-up; audio and camera video are not sent by this feature.
+                  </p>
+                  <button id="startInterviewButton" class="primary-button start-interview-button" type="submit">Start Interview</button>
+                </form>
+              </section>
+
+              <section class="panel system-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">Pre-Interview System Check</p>
+                    <h2>Ready the environment</h2>
+                  </div>
+                  <span id="systemOverallStatus" class="status-chip">Not checked</span>
+                </div>
+                <div class="system-check-list" role="status" aria-live="polite">
+                  <article><span class="system-icon">CAM</span><div><strong>Webcam</strong><p id="cameraCheckStatus">Permission not checked</p></div></article>
+                  <article><span class="system-icon">MIC</span><div><strong>Microphone</strong><p id="microphoneCheckStatus">Permission not checked</p></div></article>
+                  <article><span class="system-icon">AUDIO</span><div><strong>Speaker</strong><p id="speakerCheckStatus">Capability not checked</p></div></article>
+                  <article><span class="system-icon">WEB</span><div><strong>Browser Focus</strong><p id="browserCheckStatus">Ready to monitor during interview</p></div></article>
+                </div>
+                <button id="runSystemCheckButton" class="secondary-button full-button" type="button">Run System Check</button>
+                <div class="monitoring-note">
+                  <p class="eyebrow">Interview Monitoring</p>
+                  <ul>
+                    <li>Camera observation uses browser-supported face signals when available.</li>
+                    <li>Focus monitoring records page visibility and window focus changes separately.</li>
+                    <li>Microphone status and browser speech recognition support are checked before the interview.</li>
+                    <li>Question audio uses browser text-to-speech with an accessible transcript fallback.</li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+
+            <section class="panel performance-strip">
+              <div class="performance-heading">
+                <div>
+                  <p class="eyebrow">Your Interview Performance</p>
+                  <h2>Practice with context</h2>
+                </div>
+                <a class="secondary-button" href="{{ url_for('main.dashboard_page') }}">View Full Analytics</a>
+              </div>
+              <div class="performance-metrics">
+                <article><span>Interviews</span><strong id="performanceInterviews">0</strong></article>
+                <article><span>Average Score</span><strong id="performanceAverage">0%</strong></article>
+                <article><span>Technical</span><strong id="performanceTechnical">0%</strong></article>
+                <article><span>Communication</span><strong id="performanceCommunication">0%</strong></article>
+                <article><span>Strongest Domain</span><strong id="performanceDomain">Start practicing</strong></article>
+              </div>
+              <div id="performanceTrend" class="trend-spark" aria-label="Recent interview score trend"></div>
+            </section>
+          </section>
+
+          <section id="interviewView" class="panel live-interview hidden" aria-live="polite">
+            <div class="session-exit-bar" aria-label="Active interview controls">
+              <button id="interviewBackButton" class="session-back-button" type="button" aria-label="Go back to interview setup">
+                <span aria-hidden="true">&larr;</span> Back
+              </button>
+              <button id="interviewQuitButton" class="session-quit-button" type="button" aria-label="Quit interview and return to dashboard">
+                Quit
+              </button>
+            </div>
+            <header class="live-header">
+              <div class="interviewer-card">
+                <div id="interviewerAvatar" class="interviewer-avatar" aria-hidden="true">
+                  <span class="pulse-ring"></span><span class="avatar-core">AI</span>
+                </div>
+                <div>
+                  <p id="companyStyleLabel" class="eyebrow">Company-style interview</p>
+                  <h2 id="interviewStateLabel">Preparing interview</h2>
+                  <div class="chip-row">
+                    <span id="roundChip" class="chip">Technical Round</span>
+                    <span id="domainChip" class="chip">Software Engineering</span>
+                    <span id="difficultyChip" class="chip">Easy</span>
+                  </div>
+                </div>
+              </div>
+              <div class="live-timers">
+                <article><span>Interview Remaining</span><strong id="interviewTimerValue">30:00</strong></article>
+                <article><span>Current Question</span><strong id="questionTimerValue">02:00</strong></article>
+              </div>
+            </header>
+
+            <div class="live-progress-row">
+              <div><strong id="questionProgressLabel">Question 1 of 5</strong><span id="topicLabel">Topic loading</span></div>
+              <div class="session-progress-track"><span id="progressFill" class="session-progress-fill"></span></div>
+              <span id="integrityBadge" class="status-chip">Session: Normal</span>
+            </div>
+            <div id="warningBanner" class="pressure-banner hidden" role="alert"></div>
+
+            <div class="interview-room-grid">
+              <section class="voice-room">
+                <div class="voice-room-status">
+                  <span id="liveVoiceBadge" class="status-chip hidden">Hands-free voice</span>
+                  <span id="adaptiveQuestionBadge" class="status-chip adaptive-badge hidden">Adaptive follow-up</span>
+                </div>
+                <div class="voice-orb" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+                <p id="spokenStateText" class="spoken-state">Interviewer is preparing the question...</p>
+                <div class="question-accessibility-controls">
+                  <button id="repeatQuestionButton" class="secondary-button" type="button" disabled>Repeat Question</button>
+                  <button id="interruptInterviewerButton" class="ghost-button hidden" type="button">Answer Now</button>
+                  <span id="replayCount">Question replays: 0 / 2</span>
+                  <label class="toggle-row"><input id="transcriptToggle" type="checkbox" /> Show Question Transcript</label>
+                </div>
+                <div id="questionTranscript" class="question-transcript hidden"></div>
+
+                <section id="answerMethodPanel" class="answer-method hidden" aria-label="Answer method">
+                  <p>Choose how you want to answer this question.</p>
+                  <div class="mode-buttons">
+                    <button id="typeModeButton" class="secondary-button" type="button">Type Answer</button>
+                    <button id="speakModeButton" class="secondary-button" type="button">Speak Answer</button>
+                  </div>
+                </section>
+
+                <form id="typedAnswerForm" class="answer-panel hidden">
+                  <label for="typedAnswerInput">Typed answer</label>
+                  <textarea id="typedAnswerInput" placeholder="Type your answer here..." aria-label="Type your interview answer"></textarea>
+                  <div class="answer-meta"><span id="typedWordCount">0 words</span><span id="typedElapsed">0:00 elapsed</span></div>
+                  <div class="answer-actions">
+                    <button class="primary-button" type="submit">Submit Answer</button>
+                    <button id="clearTypedButton" class="ghost-button" type="button">Clear</button>
+                    <button class="ghost-button skip-answer-button" type="button">Skip Question</button>
+                  </div>
+                </form>
+
+                <section id="spokenAnswerPanel" class="answer-panel spoken-answer-panel hidden">
+                  <div class="listening-header">
+                    <div><span id="microphoneDot" class="microphone-dot"></span><strong id="speechStatusText">Ready to listen</strong></div>
+                    <span id="spokenElapsed">0:00</span>
+                  </div>
+                  <div id="audioVisualizer" class="audio-visualizer" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <div id="turnDetectionPanel" class="turn-detection-panel">
+                    <div><span id="turnDetectionDot"></span><strong id="turnDetectionText">Manual turn control</strong></div>
+                    <span id="silenceCountdown">Use Stop or Submit when finished</span>
+                  </div>
+                  <label for="spokenTranscript">Live transcript</label>
+                  <textarea id="spokenTranscript" placeholder="Your spoken answer will appear here. You can correct the transcript before submitting."></textarea>
+                  <div class="answer-meta"><span id="spokenWordCount">0 words</span><span id="speechMetricPreview">Pace appears after recording</span></div>
+                  <div class="answer-actions">
+                    <button id="startSpeakingButton" class="primary-button" type="button">Start Speaking</button>
+                    <button id="stopSpeakingButton" class="secondary-button" type="button" disabled>Stop</button>
+                    <button id="submitSpokenButton" class="primary-button" type="button" disabled>Submit Answer</button>
+                    <button class="ghost-button skip-answer-button" type="button">Skip Question</button>
+                  </div>
+                </section>
+
+                <div id="processingPanel" class="processing-panel hidden">
+                  <span class="processing-spinner"></span>
+                  <div><strong>Processing answer</strong><p>Selecting the next adaptive question. Detailed scoring remains hidden until completion.</p></div>
+                </div>
+              </section>
+
+              <aside class="candidate-monitor">
+                <div class="monitor-header"><div><p class="eyebrow">Candidate Webcam</p><strong>Observable session view</strong></div><span id="cameraLiveBadge" class="status-chip">Camera off</span></div>
+                <div class="monitor-frame compact-monitor">
+                  <video id="candidateVideo" class="candidate-video" autoplay muted playsinline aria-label="Candidate camera preview"></video>
+                  <div id="cameraOverlay" class="camera-overlay">Run the system check to enable camera observation.</div>
+                </div>
+                <button id="cameraToggleButton" class="ghost-button full-button" type="button">Enable Camera &amp; Microphone</button>
+                <div class="integrity-grid">
+                  <article><span>Tab changes</span><strong id="tabSwitchCount">0</strong></article>
+                  <article><span>Window focus</span><strong id="screenFocusStatus">Active</strong></article>
+                  <article><span>Camera signal</span><strong id="cameraSignalStatus">Unavailable</strong></article>
+                  <article><span>Microphone</span><strong id="microphoneSignalStatus">Unavailable</strong></article>
+                  <article><span>Face signal</span><strong id="faceSignalStatus">Not checked</strong></article>
+                  <article><span>People signal</span><strong id="multiplePeopleStatus">Not checked</strong></article>
+                  <article><span>Warnings</span><strong id="attentionWarningCount">0</strong></article>
+                  <article><span>Session status</span><strong id="sessionStatusText">Normal</strong></article>
+                </div>
+                <p class="monitor-note">Signals can be imperfect. Warnings are coaching and integrity-review events, not proof of misconduct.</p>
+              </aside>
+            </div>
+          </section>
+
+          <section id="reportView" class="report-view hidden">
+            <section class="panel report-hero">
+              <div><p class="eyebrow">Interview Performance Report</p><h2>Your interview is complete</h2><p id="reportContext" class="subtle"></p></div>
+              <button id="newInterviewButton" class="primary-button" type="button">Practice Another Interview</button>
+            </section>
+            <section class="report-score-grid">
+              <article class="panel report-score primary-score"><span>Overall Score</span><strong id="reportOverall">0</strong><small>/ 100</small></article>
+              <article class="panel report-score"><span>Technical</span><strong id="reportTechnical">0</strong><small>/ 100</small></article>
+              <article class="panel report-score"><span>Communication</span><strong id="reportCommunication">0</strong><small>/ 100</small></article>
+              <article class="panel report-score"><span>Answer Relevance</span><strong id="reportRelevance">0</strong><small>/ 100</small></article>
+            </section>
+            <div class="report-grid">
+              <section class="panel"><p class="eyebrow">Strong Areas</p><ul id="reportStrengths" class="insight-list"></ul></section>
+              <section class="panel"><p class="eyebrow">Needs Improvement</p><ul id="reportWeaknesses" class="insight-list"></ul></section>
+              <section class="panel"><p class="eyebrow">Recommended Practice</p><div id="recommendedTopics" class="practice-links"></div></section>
+            </div>
+            <section class="panel report-details-grid">
+              <div><p class="eyebrow">Adaptive Interview</p><div id="adaptiveAnalysis" class="report-stat-list"></div></div>
+              <div><p class="eyebrow">Voice Conversation</p><div id="voiceAnalysis" class="report-stat-list"></div></div>
+              <div><p class="eyebrow">Interview Integrity</p><div id="integrityAnalysis" class="report-stat-list"></div></div>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Difficulty Progression</p><h2>How the interview adapted</h2></div><span class="status-chip">Visible after completion</span></div>
+              <div id="adaptiveTimeline" class="adaptive-timeline"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Question-by-Question Analysis</p><h2>Review every response</h2></div><span class="status-chip">Feedback unlocked</span></div>
+              <div id="answerReviewList" class="answer-review-list"></div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="countdownOverlay" class="countdown-overlay hidden" role="status" aria-live="assertive">
+      <div><p>Interview begins in</p><strong id="countdownValue">3</strong><span>Settle in and listen for the first question.</span></div>
+    </div>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <script>window.APP_CONFIG = {{ frontend_config | tojson }};</script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}?v=session-exit-1"></script>
+  </body>
+</html>

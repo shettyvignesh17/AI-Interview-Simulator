@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interview Learning | Interview Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body data-theme="dark">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="ambient ambient-three"></div>
+
+    <div class="page-shell learning-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Preparation Library</p>
+          <h1>Interview Learning</h1>
+          <p class="subtle">Master aptitude, coding, and interview questions associated with leading companies.</p>
+        </div>
+        <div class="topbar-actions">
+          <a class="ghost-button" href="{{ url_for('main.index') }}">Main Interview</a>
+          <a class="ghost-button" href="{{ url_for('main.aptitude_page') }}">Aptitude Quiz</a>
+          <a class="ghost-button" href="{{ url_for('main.resume_quiz_page') }}">Resume Quiz</a>
+          <a class="ghost-button" href="{{ url_for('main.dashboard_page') }}">Analytics</a>
+          <button id="themeToggle" class="ghost-button icon-button" type="button" aria-label="Switch to light theme" title="Switch to light theme">
+            <svg class="nav-symbol theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path></svg>
+            <svg class="nav-symbol theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"></path></svg>
+          </button>
+          <button id="logoutButton" class="ghost-button icon-button hidden" type="button" aria-label="Log out" title="Log out">
+            <svg class="nav-symbol logout-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10M14 8l4 4-4 4M8 12h10"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section id="authNotice" class="panel auth-guard hidden">
+          <p class="eyebrow">Authentication Needed</p>
+          <h2>Log in to build your personal learning history.</h2>
+          <p class="subtle">Bookmarks, notes, revision questions, confidence, and progress are private to your account.</p>
+          <div class="topbar-actions learning-auth-action">
+            <a class="primary-button" href="{{ url_for('main.index') }}">Go To Login</a>
+          </div>
+        </section>
+
+        <section id="learningContent" class="learning-page hidden">
+          <section class="panel learning-hero">
+            <div class="learning-hero-copy">
+              <span class="learning-library-mark">1,000-question learning library</span>
+              <p class="eyebrow">Learn Before You Perform</p>
+              <h2>Build answers you can explain, not facts you only recognize.</h2>
+              <p>Explore educational answers, code walkthroughs, STAR examples, personal notes, and targeted revision paths.</p>
+              <label class="learning-search">
+                <span class="search-symbol">⌕</span>
+                <input id="questionSearch" type="search" placeholder="Search Google dynamic programming, SQL joins, NVIDIA machine learning..." />
+                <button id="clearSearchButton" class="search-clear hidden" type="button" aria-label="Clear search">Clear</button>
+              </label>
+            </div>
+            <div class="learning-hero-stat" aria-label="Overall learning progress">
+              <span>Questions learned</span>
+              <strong id="heroLearnedValue">0</strong>
+              <small>of <span id="heroTotalValue">1,000</span></small>
+              <div class="learning-progress-track"><span id="heroProgressFill"></span></div>
+            </div>
+          </section>
+
+          <nav id="learningNav" class="panel learning-nav" aria-label="Interview learning sections">
+            <button class="learning-nav-button active" data-view="overview" type="button">Overview</button>
+            <button class="learning-nav-button" data-view="aptitude" type="button">Aptitude</button>
+            <button class="learning-nav-button" data-view="coding" type="button">Coding</button>
+            <button class="learning-nav-button" data-view="interview" type="button">Interview</button>
+            <button class="learning-nav-button" data-view="companies" type="button">Companies</button>
+            <button class="learning-nav-button" data-view="bookmarked" type="button">Bookmarks</button>
+            <button class="learning-nav-button" data-view="revision" type="button">Revision</button>
+            <button class="learning-nav-button" data-view="flashcards" type="button">Flashcards</button>
+            <button class="learning-nav-button" data-view="progress" type="button">Progress</button>
+          </nav>
+
+          <section id="overviewView" class="learning-view">
+            <section id="sectionCards" class="learning-section-grid"></section>
+
+            <section class="learning-dashboard-grid">
+              <article class="panel daily-goal-card">
+                <div class="panel-heading">
+                  <div><p class="eyebrow">Daily Goal</p><h3>Today's Learning</h3></div>
+                  <select id="dailyGoalSelect" aria-label="Daily question goal">
+                    <option value="5">5 / day</option>
+                    <option value="10">10 / day</option>
+                    <option value="20">20 / day</option>
+                    <option value="30">30 / day</option>
+                  </select>
+                </div>
+                <div class="daily-goal-number"><strong id="dailyGoalCompleted">0</strong><span>/ <span id="dailyGoalTarget">10</span> learned today</span></div>
+                <div class="learning-progress-track"><span id="dailyGoalFill"></span></div>
+              </article>
+
+              <article id="questionOfDayCard" class="panel learning-feature-card"></article>
+              <article id="continueCard" class="panel learning-feature-card"></article>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">Quick Practice</p><h3>Choose Your Route</h3></div>
+              </div>
+              <div class="learning-quick-grid">
+                <button class="learning-quick-action" data-action="companies" type="button"><span>🏢</span><strong>Companies</strong><small>Target a hiring style</small></button>
+                <button class="learning-quick-action" data-action="topics" type="button"><span>▦</span><strong>Topics</strong><small>Close a knowledge gap</small></button>
+                <button class="learning-quick-action" data-action="bookmarked" type="button"><span>🔖</span><strong>Bookmarks</strong><small>Return to saved items</small></button>
+                <button class="learning-quick-action" data-action="revision" type="button"><span>↻</span><strong>Revision</strong><small>Revisit difficult work</small></button>
+                <button class="learning-quick-action" data-action="random" type="button"><span>⤨</span><strong>Random</strong><small>Use current filters</small></button>
+                <button class="learning-quick-action" data-action="surprise" type="button"><span>⚡</span><strong>Surprise Me</strong><small>Any question, no warning</small></button>
+                <button class="learning-quick-action" data-action="flashcards" type="button"><span>▱</span><strong>Flashcards</strong><small>Recall before reveal</small></button>
+                <button class="learning-quick-action" data-action="study" type="button"><span>◫</span><strong>Study Mode</strong><small>One question at a time</small></button>
+              </div>
+            </section>
+
+            <section class="learning-two-column">
+              <section class="panel">
+                <div class="panel-heading"><div><p class="eyebrow">Recommended For You</p><h3>Rule-Based Next Steps</h3></div></div>
+                <div id="recommendedList" class="learning-compact-list"></div>
+              </section>
+              <section class="panel">
+                <div class="panel-heading"><div><p class="eyebrow">Recently Viewed</p><h3>Continue Your Trail</h3></div></div>
+                <div id="recentList" class="learning-compact-list"></div>
+              </section>
+            </section>
+          </section>
+
+          <section id="companiesView" class="learning-view hidden">
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Prepare By Company</p><h3>Choose A Target Company</h3></div></div>
+              <p class="subtle">Questions use company-style labels where exact interview provenance is not verified.</p>
+              <div id="companyCardGrid" class="learning-company-grid"></div>
+            </section>
+            <section class="panel target-company-panel">
+              <div><p class="eyebrow">My Target Companies</p><h3>Prioritize Recommendations</h3></div>
+              <div id="targetCompanyList" class="target-company-list"></div>
+              <button id="saveTargetsButton" class="secondary-button" type="button">Save Target Companies</button>
+            </section>
+          </section>
+
+          <section id="topicsView" class="learning-view hidden">
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Prepare By Topic</p><h3>Build A Focused Study Path</h3></div></div>
+              <div id="topicCardGrid" class="learning-topic-grid"></div>
+            </section>
+          </section>
+
+          <section id="progressView" class="learning-view hidden">
+            <section class="metric-grid learning-progress-metrics">
+              <article class="metric-card"><span>Total Viewed</span><strong id="progressViewed">0</strong></article>
+              <article class="metric-card"><span>Questions Learned</span><strong id="progressLearned">0</strong></article>
+              <article class="metric-card"><span>Bookmarked</span><strong id="progressBookmarked">0</strong></article>
+              <article class="metric-card accent"><span>Revision List</span><strong id="progressRevision">0</strong></article>
+            </section>
+            <section class="learning-two-column">
+              <section class="panel"><p class="eyebrow">Topics To Improve</p><h3>Weak Topic Detection</h3><div id="weakTopicList" class="learning-signal-list"></div><button id="practiceWeakButton" class="secondary-button learning-signal-action" type="button">Practice Weak Topics</button></section>
+              <section class="panel"><p class="eyebrow">Strong Topics</p><h3>Growing Confidence</h3><div id="strongTopicList" class="learning-signal-list"></div></section>
+            </section>
+            <section class="panel"><p class="eyebrow">Most Studied</p><h3>Your Learning Pattern</h3><div id="mostStudiedList" class="chip-row learning-topic-signals"></div></section>
+          </section>
+
+          <section id="catalogView" class="learning-view hidden">
+            <section class="learning-catalog-layout">
+              <aside id="filterPanel" class="panel learning-filters">
+                <div class="panel-heading"><div><p class="eyebrow">Question Filters</p><h3>Narrow The Library</h3></div><button id="closeFiltersButton" class="filter-close-button" type="button" aria-label="Close filters">×</button></div>
+                <label><span>Question Type</span><select id="typeFilter"><option value="all">All Types</option><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="interview">Interview</option></select></label>
+                <label><span>Difficulty</span><select id="difficultyFilter"><option value="all">All Levels</option><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></label>
+                <label><span>Company</span><select id="companyFilter"><option value="all">All Companies</option></select></label>
+                <label><span>Topic</span><select id="topicFilter"><option value="all">All Topics</option></select></label>
+                <label><span>Question Status</span><select id="statusFilter"><option value="all">All Questions</option><option value="not-studied">Not Studied</option><option value="studied">Studied</option><option value="bookmarked">Bookmarked</option><option value="revision">Revision</option></select></label>
+                <label><span>Frequency</span><select id="frequencyFilter"><option value="all">All Frequencies</option><option value="Very Common">Very Common</option><option value="Common">Common</option><option value="Moderate">Moderate</option><option value="Rare">Rare</option></select></label>
+                <button id="clearFiltersButton" class="ghost-button" type="button">Clear Filters</button>
+              </aside>
+
+              <section class="learning-question-column">
+                <section class="panel catalog-toolbar">
+                  <div><p id="catalogEyebrow" class="eyebrow">Question Library</p><h2 id="catalogTitle">All Questions</h2><p id="catalogCount" class="subtle">Loading questions...</p></div>
+                  <div class="catalog-toolbar-actions">
+                    <button id="mobileFiltersButton" class="ghost-button" type="button">Filters</button>
+                    <button id="studyModeButton" class="ghost-button" type="button">Study Mode</button>
+                    <select id="sortFilter" aria-label="Sort questions"><option value="recommended">Recommended</option><option value="difficulty">Difficulty</option><option value="important">Most Important</option><option value="common">Most Common</option><option value="company">Company</option><option value="recently-added">Recently Added</option><option value="not-studied">Not Studied</option><option value="recently-viewed">Recently Viewed</option></select>
+                  </div>
+                </section>
+                <div id="questionList" class="learning-question-list"></div>
+                <nav id="pagination" class="panel learning-pagination" aria-label="Question pages"></nav>
+              </section>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="studyDialog" class="study-dialog">
+      <div class="study-dialog-shell">
+        <header class="study-dialog-header">
+          <div><p id="studyModeLabel" class="eyebrow">Study Mode</p><strong id="studyCounter">Question 1 of 20</strong></div>
+          <button id="closeStudyButton" class="ghost-button" type="button">Close</button>
+        </header>
+        <div class="learning-progress-track"><span id="studyProgressFill"></span></div>
+        <article id="studyQuestionCard" class="study-question-card"></article>
+        <footer class="study-dialog-footer">
+          <button id="studyPreviousButton" class="ghost-button" type="button">Previous</button>
+          <button id="studyRevealButton" class="secondary-button" type="button">Reveal Answer</button>
+          <button id="studyNextButton" class="primary-button" type="button">Next</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <div id="filterBackdrop" class="filter-backdrop hidden"></div>
+    <div id="toast" class="toast hidden"></div>
+    <script type="module" src="{{ url_for('static', filename='js/learning.js') }}"></script>
+  </body>
+</html>
