@@ -1,6 +1,7 @@
 """Generate the scalable Interview Learning catalog independently from the UI."""
 
 from interview_simulator.utils.common import safe_json_dumps, safe_json_loads
+from interview_simulator.services.practical_coding_catalog import build_practical_coding_questions
 
 
 COMPANIES = [
@@ -491,11 +492,12 @@ def generate_learning_catalog(aptitude_rows):
     records = [
         *build_aptitude_learning_questions(aptitude_rows),
         *build_coding_learning_questions(),
+        *build_practical_coding_questions(),
         *build_interview_learning_questions(),
     ]
-    if len(records) != 1000 or len({record["id"] for record in records}) != 1000:
-        raise RuntimeError("Learning catalog must contain exactly 1,000 unique question IDs.")
-    if len({record["question"] for record in records}) != 1000:
+    if len(records) != 1200 or len({record["id"] for record in records}) != 1200:
+        raise RuntimeError("Learning catalog must contain exactly 1,200 unique question IDs.")
+    if len({record["question"] for record in records}) != 1200:
         raise RuntimeError("Learning catalog question text must be unique.")
     required = {"id", "question_type", "category", "company", "difficulty", "question", "answer", "detailed_explanation", "topic"}
     if any(not required.issubset(record) or any(not record[key] for key in required) for record in records):

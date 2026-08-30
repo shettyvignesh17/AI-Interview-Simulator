@@ -7,6 +7,7 @@ from interview_simulator.utils.common import iso_now, safe_json_dumps, safe_json
 
 
 PAGE_SIZE = 20
+CATALOG_SIZE = 1200
 DAILY_GOALS = {5, 10, 20, 30}
 CONFIDENCE_LEVELS = {"", "low", "medium", "high"}
 FLASHCARD_LEVELS = {"", "easy", "medium", "difficult"}
@@ -16,20 +17,23 @@ QUESTION_COLUMNS = (
     "id", "question_type", "category", "subcategory", "company", "difficulty", "question",
     "answer", "detailed_explanation", "example", "tags_json", "topic", "estimated_study_time",
     "frequency", "related_questions_json", "approach", "code", "time_complexity",
-    "space_complexity", "common_mistakes", "interview_tip", "created_at",
+    "space_complexity", "common_mistakes", "interview_tip", "title", "problem",
+    "input_format", "output_format", "constraints_json", "example_input", "example_output",
+    "example_explanation", "hints_json", "brute_force_approach", "optimized_approach",
+    "solutions_json", "complexity_explanation", "created_at",
 )
 
 
 def ensure_learning_catalog(database, force=False):
     current_count = database.execute("SELECT COUNT(*) FROM learning_questions").fetchone()[0]
-    if current_count == 1000 and not force:
+    practical_count = database.execute(
+        "SELECT COUNT(*) FROM learning_questions WHERE category = 'Practical Coding'"
+    ).fetchone()[0]
+    if current_count == CATALOG_SIZE and practical_count == 200 and not force:
         return current_count
 
     aptitude_rows = database.execute("SELECT * FROM aptitude_questions ORDER BY id").fetchall()
     records = generate_learning_catalog(aptitude_rows)
-    if force or current_count:
-        database.execute("DELETE FROM learning_questions")
-
     placeholders = ", ".join("?" for _ in QUESTION_COLUMNS)
     updates = ", ".join(f"{column}=excluded.{column}" for column in QUESTION_COLUMNS if column != "id")
     database.executemany(
@@ -40,20 +44,30 @@ def ensure_learning_catalog(database, force=False):
         """,
         [tuple(record.get(column, iso_now() if column == "created_at" else "") for column in QUESTION_COLUMNS) for record in records],
     )
+    valid_ids = {record["id"] for record in records}
+    stale_ids = [
+        row["id"] for row in database.execute("SELECT id FROM learning_questions").fetchall()
+        if row["id"] not in valid_ids
+    ]
+    if stale_ids:
+        database.executemany("DELETE FROM learning_questions WHERE id = ?", ((item,) for item in stale_ids))
     database.commit()
     return len(records)
 
 
 def _question_payload(row, include_answer=True):
+    practical = row["category"] == "Practical Coding"
     payload = {
         "questionId": row["id"],
-        "type": row["question_type"],
+        "type": "practical" if practical else row["question_type"],
         "category": row["category"],
         "subcategory": row["subcategory"],
         "company": row["company"],
-        "companyLabel": f"{row['company']}-style question",
+        "companyLabel": f"Company Pattern: {row['company']}" if practical else f"{row['company']}-style question",
         "difficulty": row["difficulty"],
         "question": row["question"],
+        "title": row["title"] or row["question"],
+        "problem": row["problem"] or row["question"],
         "example": row["example"],
         "tags": safe_json_loads(row["tags_json"], []),
         "topic": row["topic"],
@@ -79,6 +93,17 @@ def _question_payload(row, include_answer=True):
                 "spaceComplexity": row["space_complexity"],
                 "commonMistakes": row["common_mistakes"],
                 "interviewTip": row["interview_tip"],
+                "inputFormat": row["input_format"],
+                "outputFormat": row["output_format"],
+                "constraints": safe_json_loads(row["constraints_json"], []),
+                "exampleInput": row["example_input"],
+                "exampleOutput": row["example_output"],
+                "exampleExplanation": row["example_explanation"],
+                "hints": safe_json_loads(row["hints_json"], []),
+                "bruteForceApproach": row["brute_force_approach"],
+                "optimizedApproach": row["optimized_approach"],
+                "solutions": safe_json_loads(row["solutions_json"], {}),
+                "complexityExplanation": row["complexity_explanation"],
             }
         )
     return payload
@@ -111,9 +136,20 @@ def _filters(params, alias="q"):
         )
         values.extend([pattern] * 6)
 
+    question_type = (params.get("type") or "").strip().lower()
+    if question_type == "practical":
+        clauses.append(f"{alias}.category = ?")
+        values.append("Practical Coding")
+    elif question_type == "coding":
+        clauses.append(f"{alias}.question_type = ? AND {alias}.category != ?")
+        values.extend(["coding", "Practical Coding"])
+    elif question_type and question_type != "all":
+        clauses.append(f"{alias}.question_type = ?")
+        values.append(question_type)
+
     field_map = {
-        "type": "question_type", "difficulty": "difficulty", "company": "company",
-        "topic": "topic", "frequency": "frequency",
+        "difficulty": "difficulty", "company": "company", "topic": "topic",
+        "category": "subcategory", "frequency": "frequency",
     }
     for parameter, column in field_map.items():
         value = (params.get(parameter) or "").strip()
@@ -138,6 +174,7 @@ def list_questions(database, user_id, params):
     clauses, values = _filters(params)
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     sort_map = {
+        "number": "q.id",
         "difficulty": "CASE q.difficulty WHEN 'Easy' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, q.topic",
         "important": "CASE q.frequency WHEN 'Very Common' THEN 1 WHEN 'Common' THEN 2 WHEN 'Moderate' THEN 3 ELSE 4 END, q.topic",
         "common": "CASE q.frequency WHEN 'Very Common' THEN 1 WHEN 'Common' THEN 2 WHEN 'Moderate' THEN 3 ELSE 4 END, q.question",
@@ -284,21 +321,31 @@ def update_preferences(database, user_id, payload):
 def _section_summary(database, user_id):
     rows = database.execute(
         """
-        SELECT q.question_type, COUNT(*) AS total, COALESCE(SUM(p.studied), 0) AS studied,
+        SELECT CASE WHEN q.category='Practical Coding' THEN 'practical' ELSE q.question_type END AS section_type,
+               COUNT(*) AS total, COALESCE(SUM(p.studied), 0) AS studied,
                COALESCE(SUM(p.bookmarked), 0) AS bookmarked
         FROM learning_questions q
         LEFT JOIN learning_progress p ON p.question_id=q.id AND p.user_id=?
-        GROUP BY q.question_type
+        GROUP BY section_type
         """,
         (user_id,),
     ).fetchall()
-    return {
-        row["question_type"]: {
+    summary = {
+        row["section_type"]: {
             "total": row["total"], "studied": row["studied"], "bookmarked": row["bookmarked"],
             "progress": round(row["studied"] / row["total"] * 100, 1) if row["total"] else 0,
         }
         for row in rows
     }
+    if "practical" in summary:
+        difficulty_rows = database.execute(
+            "SELECT difficulty, COUNT(*) AS total FROM learning_questions "
+            "WHERE category='Practical Coding' GROUP BY difficulty"
+        ).fetchall()
+        summary["practical"]["difficulty"] = {
+            row["difficulty"]: row["total"] for row in difficulty_rows
+        }
+    return summary
 
 
 def _topic_signals(database, user_id):
@@ -344,8 +391,9 @@ def learning_overview(database, user_id):
         (user_id,),
     ).fetchone()
     ordinal = datetime.now(timezone.utc).date().toordinal()
+    catalog_total = max(1, sum(section["total"] for section in sections.values()))
     daily_row = database.execute(
-        f"{_joined_select()} ORDER BY q.id LIMIT 1 OFFSET ?", (user_id, ordinal % 1000)
+        f"{_joined_select()} ORDER BY q.id LIMIT 1 OFFSET ?", (user_id, ordinal % catalog_total)
     ).fetchone()
     recent_rows = database.execute(
         f"{_joined_select()} WHERE p.last_viewed IS NOT NULL ORDER BY p.last_viewed DESC LIMIT 6", (user_id,)
@@ -398,11 +446,16 @@ def learning_overview(database, user_id):
 
 
 def metadata(database):
-    topic_rows = database.execute("SELECT DISTINCT question_type, topic FROM learning_questions ORDER BY question_type, topic").fetchall()
+    topic_rows = database.execute(
+        "SELECT DISTINCT question_type, category, topic FROM learning_questions ORDER BY question_type, topic"
+    ).fetchall()
     topics = sorted({row["topic"] for row in topic_rows})
     topics_by_type = {
-        question_type: [row["topic"] for row in topic_rows if row["question_type"] == question_type]
-        for question_type in ("aptitude", "coding", "interview")
+        question_type: sorted({
+            row["topic"] for row in topic_rows
+            if ("practical" if row["category"] == "Practical Coding" else row["question_type"]) == question_type
+        })
+        for question_type in ("aptitude", "coding", "practical", "interview")
     }
     categories = [row[0] for row in database.execute("SELECT DISTINCT category FROM learning_questions ORDER BY category")]
     return {"companies": COMPANIES, "topics": topics, "topicsByType": topics_by_type, "categories": categories, "dailyGoals": sorted(DAILY_GOALS)}

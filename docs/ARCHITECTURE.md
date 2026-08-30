@@ -86,7 +86,8 @@ The browser uses an explicit state machine for question preparation, interviewer
 
 ### Interview Learning
 
-- The catalog provides 1,000 aptitude, coding, and interview study entries.
+- The catalog provides 1,200 aptitude, coding, practical coding, and interview study entries. Practical Coding contributes 200 records while preserving the original 400-item Coding collection.
+- Practical problem detail fields and four-language solutions are stored with the existing learning records, while completion and bookmarks reuse the existing per-user `learning_progress` table.
 - Server-side filters, pagination, progress, bookmarks, notes, confidence, and revision state are user-scoped.
 
 ## Data and Security Boundaries

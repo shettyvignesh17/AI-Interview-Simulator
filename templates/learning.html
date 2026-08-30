@@ -16,7 +16,7 @@
         <div>
           <p class="eyebrow">Preparation Library</p>
           <h1>Interview Learning</h1>
-          <p class="subtle">Master aptitude, coding, and interview questions associated with leading companies.</p>
+          <p class="subtle">Master aptitude, coding concepts, practical programming, and interview questions associated with leading companies.</p>
         </div>
         <div class="topbar-actions">
           <a class="ghost-button" href="{{ url_for('main.index') }}">Main Interview</a>
@@ -46,7 +46,7 @@
         <section id="learningContent" class="learning-page hidden">
           <section class="panel learning-hero">
             <div class="learning-hero-copy">
-              <span class="learning-library-mark">1,000-question learning library</span>
+              <span class="learning-library-mark">1,200-question learning library</span>
               <p class="eyebrow">Learn Before You Perform</p>
               <h2>Build answers you can explain, not facts you only recognize.</h2>
               <p>Explore educational answers, code walkthroughs, STAR examples, personal notes, and targeted revision paths.</p>
@@ -59,7 +59,7 @@
             <div class="learning-hero-stat" aria-label="Overall learning progress">
               <span>Questions learned</span>
               <strong id="heroLearnedValue">0</strong>
-              <small>of <span id="heroTotalValue">1,000</span></small>
+              <small>of <span id="heroTotalValue">1,200</span></small>
               <div class="learning-progress-track"><span id="heroProgressFill"></span></div>
             </div>
           </section>
@@ -68,6 +68,7 @@
             <button class="learning-nav-button active" data-view="overview" type="button">Overview</button>
             <button class="learning-nav-button" data-view="aptitude" type="button">Aptitude</button>
             <button class="learning-nav-button" data-view="coding" type="button">Coding</button>
+            <button class="learning-nav-button" data-view="practical" type="button"><span aria-hidden="true">&lt;/&gt;</span> Practical Coding</button>
             <button class="learning-nav-button" data-view="interview" type="button">Interview</button>
             <button class="learning-nav-button" data-view="companies" type="button">Companies</button>
             <button class="learning-nav-button" data-view="bookmarked" type="button">Bookmarks</button>
@@ -164,10 +165,10 @@
             <section class="learning-catalog-layout">
               <aside id="filterPanel" class="panel learning-filters">
                 <div class="panel-heading"><div><p class="eyebrow">Question Filters</p><h3>Narrow The Library</h3></div><button id="closeFiltersButton" class="filter-close-button" type="button" aria-label="Close filters">×</button></div>
-                <label><span>Question Type</span><select id="typeFilter"><option value="all">All Types</option><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="interview">Interview</option></select></label>
+                <label><span>Question Type</span><select id="typeFilter"><option value="all">All Types</option><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="practical">Practical Coding</option><option value="interview">Interview</option></select></label>
                 <label><span>Difficulty</span><select id="difficultyFilter"><option value="all">All Levels</option><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></label>
                 <label><span>Company</span><select id="companyFilter"><option value="all">All Companies</option></select></label>
-                <label><span>Topic</span><select id="topicFilter"><option value="all">All Topics</option></select></label>
+                <label><span id="topicFilterLabel">Topic</span><select id="topicFilter"><option value="all">All Topics</option></select></label>
                 <label><span>Question Status</span><select id="statusFilter"><option value="all">All Questions</option><option value="not-studied">Not Studied</option><option value="studied">Studied</option><option value="bookmarked">Bookmarked</option><option value="revision">Revision</option></select></label>
                 <label><span>Frequency</span><select id="frequencyFilter"><option value="all">All Frequencies</option><option value="Very Common">Very Common</option><option value="Common">Common</option><option value="Moderate">Moderate</option><option value="Rare">Rare</option></select></label>
                 <button id="clearFiltersButton" class="ghost-button" type="button">Clear Filters</button>
@@ -179,7 +180,7 @@
                   <div class="catalog-toolbar-actions">
                     <button id="mobileFiltersButton" class="ghost-button" type="button">Filters</button>
                     <button id="studyModeButton" class="ghost-button" type="button">Study Mode</button>
-                    <select id="sortFilter" aria-label="Sort questions"><option value="recommended">Recommended</option><option value="difficulty">Difficulty</option><option value="important">Most Important</option><option value="common">Most Common</option><option value="company">Company</option><option value="recently-added">Recently Added</option><option value="not-studied">Not Studied</option><option value="recently-viewed">Recently Viewed</option></select>
+                    <select id="sortFilter" aria-label="Sort questions"><option value="recommended">Recommended</option><option value="number">Question Number</option><option value="difficulty">Difficulty</option><option value="important">Most Important</option><option value="common">Most Common</option><option value="company">Company</option><option value="recently-added">Recently Added</option><option value="not-studied">Not Studied</option><option value="recently-viewed">Recently Viewed</option></select>
                   </div>
                 </section>
                 <div id="questionList" class="learning-question-list"></div>

@@ -10,6 +10,8 @@ const state = {
     status: "all", frequency: "all", sort: "recommended", page: 1,
   },
   openAnswers: new Set(),
+  practicalReveals: new Map(),
+  solutionLanguages: new Map(),
   loading: false,
   studyIndex: 0,
   studyRevealed: false,
@@ -24,7 +26,7 @@ const ids = [
   "targetCompanyList", "saveTargetsButton", "topicCardGrid", "progressViewed", "progressLearned",
   "progressBookmarked", "progressRevision", "weakTopicList", "strongTopicList", "mostStudiedList",
   "practiceWeakButton", "filterPanel", "closeFiltersButton", "typeFilter", "difficultyFilter",
-  "companyFilter", "topicFilter", "statusFilter", "frequencyFilter", "sortFilter", "clearFiltersButton",
+  "companyFilter", "topicFilterLabel", "topicFilter", "statusFilter", "frequencyFilter", "sortFilter", "clearFiltersButton",
   "mobileFiltersButton", "studyModeButton", "catalogEyebrow", "catalogTitle", "catalogCount",
   "questionList", "pagination", "studyDialog", "studyModeLabel", "studyCounter", "studyProgressFill",
   "studyQuestionCard", "closeStudyButton", "studyPreviousButton", "studyRevealButton", "studyNextButton",
@@ -37,6 +39,7 @@ refs.quickActions = Array.from(document.querySelectorAll("[data-action]"));
 const TYPE_DETAILS = {
   aptitude: { icon: "🧠", title: "Aptitude Questions", description: "Quantitative, logical, verbal, data interpretation, probability, and analytical preparation." },
   coding: { icon: "💻", title: "Coding Questions", description: "Algorithms, data structures, programming, SQL, debugging, and computer science concepts." },
+  practical: { icon: "&lt;/&gt;", title: "Practical Coding", description: "Hands-on company-pattern problems with constraints, examples, hints, optimized approaches, and four-language solutions." },
   interview: { icon: "🎯", title: "Interview Questions", description: "Technical, HR, behavioral, project, situational, software engineering, and AI/ML guidance." },
 };
 
@@ -96,7 +99,9 @@ function populateMetadataFilters() {
 function updateTopicOptions(type) {
   const topics = state.metadata.topicsByType?.[type] || state.metadata.topics;
   const previous = state.filters.topic;
-  refs.topicFilter.innerHTML = '<option value="all">All Topics</option>' + topics
+  const practical = type === "practical";
+  refs.topicFilterLabel.textContent = practical ? "Category" : "Topic";
+  refs.topicFilter.innerHTML = `<option value="all">${practical ? "All Categories" : "All Topics"}</option>` + topics
     .map((topic) => `<option value="${escapeHtml(topic)}">${escapeHtml(topic)}</option>`).join("");
   if (topics.includes(previous)) refs.topicFilter.value = previous;
   else state.filters.topic = "all";
@@ -112,12 +117,21 @@ function syncFilterControls() {
   refs.frequencyFilter.value = state.filters.frequency;
   refs.sortFilter.value = state.filters.sort;
   refs.questionSearch.value = state.filters.search;
+  refs.questionSearch.placeholder = state.filters.type === "practical"
+    ? "Search practical coding questions by problem, category, company, or keyword..."
+    : "Search Google dynamic programming, SQL joins, NVIDIA machine learning...";
   refs.clearSearchButton.classList.toggle("hidden", !state.filters.search);
 }
 
 function sectionCard(type, section) {
   const details = TYPE_DETAILS[type];
   const continued = section.studied > 0;
+  const difficultySummary = type === "practical" ? `
+    <div class="practical-difficulty-summary">
+      <span><strong>${section.difficulty?.Easy || 0}</strong> Easy</span>
+      <span><strong>${section.difficulty?.Medium || 0}</strong> Medium</span>
+      <span><strong>${section.difficulty?.Hard || 0}</strong> Hard</span>
+    </div>` : "";
   return `
     <article class="panel learning-section-card learning-section-${type}">
       <div class="learning-section-icon">${details.icon}</div>
@@ -129,6 +143,7 @@ function sectionCard(type, section) {
         <span><strong>${section.studied}</strong> learned</span>
         <span><strong>${section.bookmarked}</strong> bookmarked</span>
       </div>
+      ${difficultySummary}
       <div class="section-progress-row"><span>${section.progress}% complete</span><strong>${section.studied} / ${section.total}</strong></div>
       <div class="learning-progress-track"><span style="width:${section.progress}%"></span></div>
       <button class="${continued ? "secondary-button" : "primary-button"}" data-open-type="${type}" type="button">
@@ -161,7 +176,9 @@ function featureQuestion(item, kind) {
 function renderOverview() {
   const overview = state.overview;
   if (!overview) return;
-  refs.sectionCards.innerHTML = Object.entries(overview.sections).map(([type, section]) => sectionCard(type, section)).join("");
+  refs.sectionCards.innerHTML = ["aptitude", "coding", "practical", "interview"]
+    .filter((type) => overview.sections[type])
+    .map((type) => sectionCard(type, overview.sections[type])).join("");
   refs.heroLearnedValue.textContent = overview.totals.learned;
   refs.heroTotalValue.textContent = overview.totals.questions.toLocaleString();
   refs.heroProgressFill.style.width = `${progressPercent(overview.totals.learned, overview.totals.questions)}%`;
@@ -221,7 +238,7 @@ function setView(view) {
   const directViews = { overview: refs.overviewView, companies: refs.companiesView, topics: refs.topicsView, progress: refs.progressView };
   (directViews[view] || refs.catalogView).classList.remove("hidden");
   Array.from(refs.learningNav.querySelectorAll("[data-view]")).forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === view || (["bookmarked", "revision", "aptitude", "coding", "interview", "flashcards"].includes(view) && button.dataset.view === view));
+    button.classList.toggle("active", button.dataset.view === view || (["bookmarked", "revision", "aptitude", "coding", "practical", "interview", "flashcards"].includes(view) && button.dataset.view === view));
   });
 }
 
@@ -231,7 +248,7 @@ function resetFilters() {
 }
 
 async function openCatalog(view = "catalog", overrides = {}) {
-  if (["aptitude", "coding", "interview"].includes(view)) {
+  if (["aptitude", "coding", "practical", "interview"].includes(view)) {
     resetFilters();
     state.filters.type = view;
   } else if (view === "bookmarked" || view === "revision") {
@@ -286,7 +303,9 @@ function renderCatalogHeading() {
   if (state.filters.status === "bookmarked") title = "Bookmarked Questions";
   if (state.filters.status === "revision") title = "My Revision Questions";
   refs.catalogTitle.textContent = title;
-  refs.catalogEyebrow.textContent = state.filters.search ? `Search: ${state.filters.search}` : "Question Library";
+  refs.catalogEyebrow.textContent = state.filters.search
+    ? `Search: ${state.filters.search}`
+    : state.filters.type === "practical" ? "200 Company-Pattern Problems" : "Question Library";
   refs.catalogCount.textContent = state.pagination.total
     ? `Showing questions ${state.pagination.from}–${state.pagination.to} of ${state.pagination.total}`
     : "No questions match the current filters.";
@@ -294,6 +313,72 @@ function renderCatalogHeading() {
 
 function actionButton(action, active, activeText, inactiveText) {
   return `<button class="question-action ${active ? "active" : ""}" data-question-action="${action}" type="button">${active ? activeText : inactiveText}</button>`;
+}
+
+function practicalRevealSet(questionId) {
+  if (!state.practicalReveals.has(questionId)) state.practicalReveals.set(questionId, new Set());
+  return state.practicalReveals.get(questionId);
+}
+
+function practicalDetails(question) {
+  const constraints = question.constraints?.length
+    ? `<ul>${question.constraints.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+    : '<p class="subtle">No additional constraints.</p>';
+  return `
+    <div class="practical-problem-grid">
+      <section><p class="answer-section-label">Problem</p><p>${escapeHtml(question.problem)}</p></section>
+      <section><p class="answer-section-label">Input Format</p><p>${escapeHtml(question.inputFormat)}</p></section>
+      <section><p class="answer-section-label">Output Format</p><p>${escapeHtml(question.outputFormat)}</p></section>
+      <section><p class="answer-section-label">Constraints</p>${constraints}</section>
+    </div>
+    <section class="practical-example-panel">
+      <div><p class="answer-section-label">Example Input</p><pre>${escapeHtml(question.exampleInput)}</pre></div>
+      <div><p class="answer-section-label">Example Output</p><pre>${escapeHtml(question.exampleOutput)}</pre></div>
+      <p><strong>Why:</strong> ${escapeHtml(question.exampleExplanation)}</p>
+    </section>`;
+}
+
+function practicalRevealPanels(question) {
+  const reveals = practicalRevealSet(question.questionId);
+  const language = state.solutionLanguages.get(question.questionId) || "python";
+  const labels = { python: "Python", java: "Java", cpp: "C++", javascript: "JavaScript" };
+  const solution = question.solutions?.[language] || question.code || "Solution unavailable.";
+  return `
+    <div class="practical-reveal-stack">
+      ${reveals.has("hint") ? `<section class="practical-reveal practical-hint"><p class="answer-section-label">Hint</p>${(question.hints || []).map((hint) => `<p>${escapeHtml(hint)}</p>`).join("")}</section>` : ""}
+      ${reveals.has("approach") ? `<section class="practical-reveal">
+        <p class="answer-section-label">Brute-Force Approach</p><p>${escapeHtml(question.bruteForceApproach)}</p>
+        <p class="answer-section-label practical-subheading">Optimized Approach</p><p>${escapeHtml(question.optimizedApproach)}</p>
+        <div class="complexity-row"><p><span>Time Complexity</span><strong>${escapeHtml(question.timeComplexity)}</strong></p><p><span>Space Complexity</span><strong>${escapeHtml(question.spaceComplexity)}</strong></p></div>
+      </section>` : ""}
+      ${reveals.has("solution") ? `<section class="practical-reveal practical-solution">
+        <div class="solution-toolbar"><div><p class="answer-section-label">Reference Solution</p><strong>${labels[language]}</strong></div><label><span>Solution Language</span><select class="solution-language-select" data-question-language="${question.questionId}">${Object.entries(labels).map(([value, label]) => `<option value="${value}" ${value === language ? "selected" : ""}>${label}</option>`).join("")}</select></label></div>
+        <pre><code>${escapeHtml(solution)}</code></pre>
+        <div class="solution-explanation"><p class="answer-section-label">Code Explanation</p><p>${escapeHtml(question.detailedExplanation)}</p><p>${escapeHtml(question.complexityExplanation)}</p></div>
+      </section>` : ""}
+    </div>`;
+}
+
+function practicalQuestionCard(question, index) {
+  const reveals = practicalRevealSet(question.questionId);
+  return `
+    <article class="panel learning-question-card practical-question-card ${question.studied ? "learned" : ""}" data-question-id="${question.questionId}">
+      <header class="learning-question-header">
+        <div><p class="eyebrow">${escapeHtml(question.companyLabel)}</p><div class="question-metadata"><span class="difficulty-badge ${difficultyClass(question.difficulty)}">${escapeHtml(question.difficulty)}</span><span>${escapeHtml(question.topic)}</span><span>${question.estimatedStudyTime} min</span></div></div>
+        <span class="question-number">${state.pagination.from + index}</span>
+      </header>
+      <p class="practical-question-id">${escapeHtml(question.questionId)} · Practical Coding</p>
+      <h3>${escapeHtml(question.title)}</h3>
+      ${practicalDetails(question)}
+      <div class="learning-question-actions practical-question-actions">
+        ${actionButton("hint", reveals.has("hint"), "Hide Hint", "View Hint")}
+        ${actionButton("approach", reveals.has("approach"), "Hide Approach", "View Approach")}
+        ${actionButton("solution", reveals.has("solution"), "Hide Solution", "View Solution")}
+        ${actionButton("bookmark", question.bookmarked, "Bookmarked", "Bookmark")}
+        ${actionButton("learned", question.studied, "Completed ✓", "Mark Completed")}
+      </div>
+      ${practicalRevealPanels(question)}
+    </article>`;
 }
 
 function answerPanel(question) {
@@ -315,6 +400,7 @@ function answerPanel(question) {
 }
 
 function questionCard(question, index) {
+  if (question.type === "practical") return practicalQuestionCard(question, index);
   const open = state.openAnswers.has(question.questionId);
   return `
     <article class="panel learning-question-card ${question.studied ? "learned" : ""}" data-question-id="${question.questionId}">
@@ -400,7 +486,15 @@ async function handleQuestionAction(button) {
   const question = state.questions.find((item) => item.questionId === questionId);
   if (!question) return;
   const action = button.dataset.questionAction;
-  if (action === "answer") {
+  if (["hint", "approach", "solution"].includes(action) && question.type === "practical") {
+    const reveals = practicalRevealSet(questionId);
+    if (reveals.has(action)) reveals.delete(action);
+    else {
+      reveals.add(action);
+      if (!question.viewedCount) await patchQuestion(questionId, { viewed: true, section: "practical" }, false);
+    }
+    renderQuestions();
+  } else if (action === "answer") {
     const opening = !state.openAnswers.has(questionId);
     if (opening) {
       state.openAnswers.add(questionId);
@@ -414,7 +508,7 @@ async function handleQuestionAction(button) {
     showToast(question.bookmarked ? "Removed from bookmarks." : "Saved to bookmarks.");
   } else if (action === "learned") {
     await patchQuestion(questionId, { studied: !question.studied });
-    showToast(question.studied ? "Marked as not studied." : "Marked as learned.");
+    showToast(question.studied ? "Marked as not studied." : question.type === "practical" ? "Practical problem completed." : "Marked as learned.");
   } else if (action === "revision") {
     await patchQuestion(questionId, { revision: !question.revision });
     showToast(question.revision ? "Removed from revision." : "Added to revision.");
@@ -550,6 +644,12 @@ function bindEvents() {
       const card = confidence.closest("[data-question-id]");
       patchQuestion(card.dataset.questionId, { confidence: confidence.dataset.confidence }).then(() => showToast("Confidence saved.")).catch((error) => showToast(error.message, "error"));
     }
+  });
+  refs.questionList.addEventListener("change", (event) => {
+    const languageSelect = event.target.closest("[data-question-language]");
+    if (!languageSelect) return;
+    state.solutionLanguages.set(languageSelect.dataset.questionLanguage, languageSelect.value);
+    renderQuestions();
   });
   refs.pagination.addEventListener("click", (event) => {
     const button = event.target.closest("[data-page]");

@@ -381,11 +381,12 @@ Software Intern at Example Labs | Used Python and SQL to improve reporting.
         self.assertEqual(overview_response.status_code, 200)
         overview_payload = overview_response.get_json()
         overview = overview_payload["overview"]
-        self.assertEqual(overview["totals"]["questions"], 1000)
+        self.assertEqual(overview["totals"]["questions"], 1200)
         self.assertEqual(
             {key: value["total"] for key, value in overview["sections"].items()},
-            {"aptitude": 300, "coding": 400, "interview": 300},
+            {"aptitude": 300, "coding": 400, "practical": 200, "interview": 300},
         )
+        self.assertEqual(overview["sections"]["practical"]["difficulty"], {"Easy": 70, "Medium": 90, "Hard": 40})
         self.assertGreaterEqual(len(overview_payload["metadata"]["companies"]), 40)
 
         first_page = self.client.get("/api/learning/questions?type=coding&page=1").get_json()
@@ -396,6 +397,30 @@ Software Intern at Example Labs | Used Python and SQL to improve reporting.
         self.assertEqual(first_page["pagination"]["total"], 400)
         self.assertEqual(first_page["pagination"]["pageSize"], 20)
         self.assertEqual(first_ids & second_ids, set())
+
+        practical_page = self.client.get("/api/learning/questions?type=practical&page=1&sort=number").get_json()
+        self.assertEqual(practical_page["pagination"]["total"], 200)
+        self.assertEqual(practical_page["pagination"]["totalPages"], 10)
+        self.assertEqual(len(practical_page["questions"]), 20)
+        practical_question = practical_page["questions"][0]
+        self.assertEqual(practical_question["type"], "practical")
+        self.assertEqual(practical_question["questionId"], "PC001")
+        self.assertTrue(practical_question["title"])
+        self.assertTrue(practical_question["problem"])
+        self.assertTrue(practical_question["constraints"])
+        self.assertTrue(practical_question["hints"])
+        self.assertEqual(set(practical_question["solutions"]), {"python", "java", "cpp", "javascript"})
+        filtered_practical = self.client.get(
+            "/api/learning/questions",
+            query_string={
+                "type": "practical",
+                "company": practical_question["company"],
+                "topic": practical_question["topic"],
+                "difficulty": practical_question["difficulty"],
+            },
+        ).get_json()
+        self.assertGreater(filtered_practical["pagination"]["total"], 0)
+        self.assertTrue(all(item["type"] == "practical" for item in filtered_practical["questions"]))
 
         question = first_page["questions"][0]
         self.assertTrue(question["answer"])
@@ -448,7 +473,20 @@ Software Intern at Example Labs | Used Python and SQL to improve reporting.
             total = database.execute("SELECT COUNT(*) FROM learning_questions").fetchone()[0]
             unique_ids = database.execute("SELECT COUNT(DISTINCT id) FROM learning_questions").fetchone()[0]
             unique_text = database.execute("SELECT COUNT(DISTINCT question) FROM learning_questions").fetchone()[0]
-            self.assertEqual((total, unique_ids, unique_text), (1000, 1000, 1000))
+            self.assertEqual((total, unique_ids, unique_text), (1200, 1200, 1200))
+            difficulty_rows = database.execute(
+                "SELECT difficulty, COUNT(*) AS total FROM learning_questions "
+                "WHERE category='Practical Coding' GROUP BY difficulty"
+            ).fetchall()
+            self.assertEqual({row["difficulty"]: row["total"] for row in difficulty_rows}, {"Easy": 70, "Medium": 90, "Hard": 40})
+            solution_rows = database.execute(
+                "SELECT id, solutions_json FROM learning_questions WHERE category='Practical Coding'"
+            ).fetchall()
+            self.assertEqual(len(solution_rows), 200)
+            for row in solution_rows:
+                solutions = safe_json_loads(row["solutions_json"], {})
+                self.assertEqual(set(solutions), {"python", "java", "cpp", "javascript"})
+                compile(solutions["python"], f"<{row['id']}>", "exec")
 
     def test_voice_first_interview_bank_integrity_and_report(self):
         options = self.client.get("/api/interview/options")

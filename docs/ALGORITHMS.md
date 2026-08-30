@@ -101,7 +101,13 @@ The parser validates extension, size, and extractable text. PDF text is read wit
 
 Resume Quiz templates are activated only for detected technologies. Selection uses category and difficulty targets, source-evidence links, prior question UIDs, and secure random jitter. Each generated option set has one correct answer and three shuffled distractors. No resume content is sent to OpenAI.
 
-## 7. Quiz Scoring and Analytics
+## 7. Practical Coding Catalog
+
+The Practical Coding generator combines 20 algorithm families with 10 distinct application contexts to create 200 stable records (`PC001` through `PC200`). Startup validation rejects incorrect totals, duplicate IDs or question text, a difficulty distribution other than 70 Easy / 90 Medium / 40 Hard, or a family missing Python, Java, C++, or JavaScript solutions.
+
+Practical rows use the existing learning catalog, search ranking, combined SQL filters, 20-row pagination, and per-user progress table. The service presents them as a separate `practical` API type while retaining backward compatibility with the existing SQLite type constraint. Catalog reseeding upserts stable IDs and removes only stale IDs, so progress for unchanged questions is preserved.
+
+## 8. Quiz Scoring and Analytics
 
 For ten-question MCQ quizzes:
 
@@ -113,6 +119,6 @@ accuracy(group) = 100 * correct_in_group / attempted_in_group
 
 Aggregations are calculated by company/category for Aptitude Quiz and by category/skill/project/experience for Resume Quiz. Historical average, highest score, trends, strong groups, and weak groups are computed from completed attempts only. Back/Quit actions mark or remove temporary attempts and never create results.
 
-## 8. Monitoring Signals
+## 9. Monitoring Signals
 
 Page visibility, focus changes, track interruptions, and browser-supported face counts are timestamped event counters. Sustained absence/multiple-face checks use time thresholds and event cooldowns. These signals are deliberately described as neutral integrity/practice events and are not classified by a machine-learning model.

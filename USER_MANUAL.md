@@ -113,7 +113,7 @@ Use `Practice Another Interview` to return to setup. Use `Analytics` in the navi
 
 - `Analytics`: summary, strengths, weaknesses, improvements, and expandable history
 - `Aptitude Quiz`: randomized 10-question aptitude attempts from a 300-question bank
-- `Interview Learning`: a 1,000-question preparation catalog with filters, notes, bookmarks, progress, and study mode
+- `Interview Learning`: a 1,200-question preparation catalog with a separate 200-problem Practical Coding section, filters, hints, four-language solutions, notes, bookmarks, progress, and study mode
 - `Resume Quiz`: a separate private resume-defense assessment based only on detected resume claims
 
 ## 9. Resume Quiz

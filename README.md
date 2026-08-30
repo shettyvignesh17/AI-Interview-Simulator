@@ -22,7 +22,8 @@ The adaptive engine is hybrid and explainable. It uses OpenAI for answer-aware f
 - Camera and microphone status with optional browser-supported face-count signals
 - Page visibility and window focus monitoring with neutral integrity warnings
 - Detailed post-interview report on the main page
-- Separate analytics history, 300-question Aptitude Quiz, and 1,000-question Interview Learning catalog
+- Separate analytics history, 300-question Aptitude Quiz, and 1,200-question Interview Learning catalog
+- Dedicated 200-problem Practical Coding collection with company patterns, search and combined filters, 20-item pagination, hints, brute-force and optimized approaches, completion tracking, and Python/Java/C++/JavaScript solutions
 - Separate Resume Quiz with private PDF/DOCX analysis, 10 source-grounded MCQs, a 10-minute timer, answer review, readiness analytics, retakes, and history
 - Responsive dark/light interface and accessible keyboard/transcript alternatives
 
@@ -41,6 +42,18 @@ Resume upload remains available as a legacy backend capability for compatibility
 7. Results provide section, skill, project, and experience analytics, risk areas, learning links, detailed explanations, source connections, history, and a progress trend.
 
 Question generation is local and deterministic in meaning, with secure random selection and option order. It does not send resume content to an external AI service.
+
+## Practical Coding
+
+`Interview Learning → Practical Coding` adds 200 hands-on programming exercises without replacing the original 400-question Coding section. The bank contains 70 Easy, 90 Medium, and 40 Hard problems distributed evenly across 20 company-pattern labels. Every record includes a problem contract, constraints, valid example, progressive hint, brute-force and optimized reasoning, complexity analysis, and reference implementations in Python, Java, C++, and JavaScript.
+
+The catalog uses the existing authenticated learning APIs and SQLite progress table. Search, company/category/difficulty filters, sorting, 20-question pagination, bookmarks, and completed state can therefore be combined and persist per user. Company labels describe interview patterns and do not claim verified question provenance.
+
+Reseed and validate the practical catalog without removing progress for stable question IDs:
+
+```bash
+./.venv/bin/python scripts/seed_practical_coding_questions.py
+```
 
 ## Question Bank
 
@@ -108,7 +121,7 @@ flowchart LR
 - `static/js/main.js`: interview state machine, speech/media integration, focus monitoring, and report rendering
 - `static/js/session_exit.js`: shared safe-exit controller, request cancellation, and browser navigation protection
 - `static/css/styles.css`: shared responsive theme and component styles
-- `templates/dashboard.html`, `aptitude.html`, `learning.html`: preserved feature pages
+- `templates/dashboard.html`, `aptitude.html`, `learning.html`: analytics, aptitude, and the 1,200-question learning experience
 - `templates/resume_quiz.html` and `static/js/resume_quiz.js`: upload, analysis, quiz timer, review, analytics, retakes, and history
 
 ### Backend
@@ -118,6 +131,7 @@ flowchart LR
 - `interview_simulator/services/ai_interviewer.py`: structured answer-aware follow-up generation, validation, memory limits, deduplication, and local fallback
 - `interview_simulator/db.py`: SQLite schema and backward-compatible migrations
 - `interview_simulator/services/learning.py`: learning catalog and progress
+- `interview_simulator/services/practical_coding_catalog.py`: validated 200-problem Practical Coding generator and four-language reference solutions
 - `interview_simulator/services/aptitude.py`: randomized aptitude engine
 - `interview_simulator/services/resume_parser.py`: validated PDF/DOCX extraction and structured professional evidence
 - `interview_simulator/services/resume_quiz.py`: source-grounded MCQ generation, deadline enforcement, evaluation, and analytics

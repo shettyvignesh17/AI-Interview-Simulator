@@ -177,6 +177,19 @@ CREATE TABLE IF NOT EXISTS learning_questions (
     space_complexity TEXT NOT NULL DEFAULT '',
     common_mistakes TEXT NOT NULL DEFAULT '',
     interview_tip TEXT NOT NULL DEFAULT '',
+    title TEXT NOT NULL DEFAULT '',
+    problem TEXT NOT NULL DEFAULT '',
+    input_format TEXT NOT NULL DEFAULT '',
+    output_format TEXT NOT NULL DEFAULT '',
+    constraints_json TEXT NOT NULL DEFAULT '[]',
+    example_input TEXT NOT NULL DEFAULT '',
+    example_output TEXT NOT NULL DEFAULT '',
+    example_explanation TEXT NOT NULL DEFAULT '',
+    hints_json TEXT NOT NULL DEFAULT '[]',
+    brute_force_approach TEXT NOT NULL DEFAULT '',
+    optimized_approach TEXT NOT NULL DEFAULT '',
+    solutions_json TEXT NOT NULL DEFAULT '{}',
+    complexity_explanation TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL
 );
 
@@ -317,6 +330,7 @@ def init_database():
     _migrate_resumes(database)
     _migrate_interview_sessions(database)
     _migrate_candidate_answers(database)
+    _migrate_learning_questions(database)
     from interview_simulator.services.aptitude import ensure_aptitude_question_bank
     from interview_simulator.services.interview_delivery import ensure_interview_question_bank
     from interview_simulator.services.learning import ensure_learning_catalog
@@ -385,6 +399,32 @@ def _migrate_candidate_answers(database):
     for name, definition in columns.items():
         if name not in existing:
             database.execute(f"ALTER TABLE candidate_answers ADD COLUMN {name} {definition}")
+    database.commit()
+
+
+def _migrate_learning_questions(database):
+    """Add practical-coding detail fields without replacing existing learning rows."""
+    existing = {
+        row["name"] for row in database.execute("PRAGMA table_info(learning_questions)").fetchall()
+    }
+    columns = {
+        "title": "TEXT NOT NULL DEFAULT ''",
+        "problem": "TEXT NOT NULL DEFAULT ''",
+        "input_format": "TEXT NOT NULL DEFAULT ''",
+        "output_format": "TEXT NOT NULL DEFAULT ''",
+        "constraints_json": "TEXT NOT NULL DEFAULT '[]'",
+        "example_input": "TEXT NOT NULL DEFAULT ''",
+        "example_output": "TEXT NOT NULL DEFAULT ''",
+        "example_explanation": "TEXT NOT NULL DEFAULT ''",
+        "hints_json": "TEXT NOT NULL DEFAULT '[]'",
+        "brute_force_approach": "TEXT NOT NULL DEFAULT ''",
+        "optimized_approach": "TEXT NOT NULL DEFAULT ''",
+        "solutions_json": "TEXT NOT NULL DEFAULT '{}'",
+        "complexity_explanation": "TEXT NOT NULL DEFAULT ''",
+    }
+    for name, definition in columns.items():
+        if name not in existing:
+            database.execute(f"ALTER TABLE learning_questions ADD COLUMN {name} {definition}")
     database.commit()
 
 
