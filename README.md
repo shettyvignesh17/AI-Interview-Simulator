@@ -1,6 +1,7 @@
 # AI Interview Simulator
 
 > An AI-powered interview preparation platform with adaptive questioning, resume-based assessment, company-style aptitude practice, voice interaction, interview monitoring, personalized learning, and performance analytics.
+This project is an AI-powered Interview Simulator that helps users practice interviews, improve their skills, and prepare for technical interviews.
 
 AI Interview Simulator is a full-stack Flask application for realistic, adaptive interview practice. Its main page has spoken interviewer questions with company, round, domain, and difficulty controls. It also includes separate Analytics, Aptitude Quiz, Resume Quiz, and Interview Learning pages.
 
